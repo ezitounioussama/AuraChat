@@ -1,0 +1,30 @@
+{
+  "sidebar": {
+    "chats": "Chats",
+    "calls": "Calls",
+    "settings": "Settings",
+    "profile": "Profile"
+  },
+  "sessionList": {
+    "search": "Search or start new chat",
+    "noResults": "No conversations found",
+    "newChat": "New Chat"
+  },
+  "chat": {
+    "sendMessage": "Type a message",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "verifiedSession": "Verified Session",
+    "encrypted": "Messages are end-to-end encrypted",
+    "emptyState": "Select a conversation to start messaging",
+    "emptyAction": "New Conversation"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "signInWithGoogle": "Sign in with Google",
+    "signInWithFacebook": "Sign in with Facebook"
+  }
+}

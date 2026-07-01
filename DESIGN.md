@@ -21,3 +21,14 @@ AuraChat values extreme clarity, low cognitive load, and high security represent
 ## 4. Typography & Interaction Language
 * **Font Selection:** Use modern, unembellished system font stacks (`font-sans`) prioritizing readability across standard displays.
 * **Action Language:** Form inputs, confirmation buttons, and clickable headers must change state predictably. Use explicit hover transitions, focused rings for accessibility, and disabled visual filters during processing actions to prevent form resubmissions.
+
+## 5. Iconography: Tabler Icons System
+* **Icon Set:** AuraChat exclusively uses **Tabler Icons** (`@tabler/icons-react`). The Material UI icon library (`@mui/icons-material`) is explicitly banned to maintain a consistent, neutral, line-art visual language.
+* **Icon Naming Convention:** All Tabler icons are PascalCased with an `Icon` prefix (e.g., `IconSend`, `IconMessage`, `IconPhone`, `IconLock`, `IconSettings`). Use named imports only — never barrel-import the entire library.
+* **Sizing Matrix:**
+  * `size={24}` — Default IconButton size, sidebar navigation icons.
+  * `size={20}` — IconButton with `size="small"`, input adornments, header action icons.
+  * `size={16}` — Inline metadata markers, Chip icons, status indicators.
+  * `size={48}` — Large empty-state / hero icons (e.g., encrypted lock on blank canvas).
+* **Color Inheritance:** Tabler icons render with `stroke="currentColor"`. Wrap them in MUI `IconButton` with `sx={{ color: ... }}` to control color. Never apply color styling directly to the icon element itself.
+* **Stroke Weight:** Tabler's default 2px stroke weight is the project standard. Do not override icon stroke widths across the application to preserve visual consistency.

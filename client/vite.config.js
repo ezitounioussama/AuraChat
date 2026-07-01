@@ -9,4 +9,19 @@ export default defineConfig({
     babel({ presets: [reactCompilerPreset()] }),
     tailwindcss(),
   ],
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: 'vendor-react', test: /[\\/]node_modules[\\/](react|react-dom|react-router|@clerk)[\\/]/ },
+            { name: 'vendor-mui', test: /[\\/]node_modules[\\/]@mui[\\/]/ },
+            { name: 'vendor-icons', test: /[\\/]node_modules[\\/]@tabler[\\/]/ },
+            { name: 'vendor-other', test: /[\\/]node_modules[\\/]/ },
+          ],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 400,
+  },
 })

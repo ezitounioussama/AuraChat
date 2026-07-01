@@ -1,9 +1,10 @@
 # AuraChat Agent Rules & Behavioral Constraints
 
 ## 1. Meta-Rules & Execution Boundaries
+* **Package Manager — pnpm Only:** NEVER use `npm` or `yarn`. All package operations MUST use `pnpm` (`pnpm add`, `pnpm remove`, `pnpm install`, `pnpm run`). If a lockfile conflict arises, delete `node_modules` and `pnpm-lock.yaml` then run `pnpm install`.
 * **Strict Line Limit:** NO component or file may exceed 150 lines of code. If an implementation approaches 130 lines, you MUST extract sub-components, utility functions, or custom hooks immediately.
 * **Zero Placeholder Policy:** Never output placeholders, incomplete structures, or `// TODO: implement later` comments. Every block must be fully typed and implemented.
-* **Verification Before Import:** Before importing any new external npm package, you must run `npm list <package>` via the terminal to confirm its existence in the project. Never assume a package is present based on training data.
+* **Verification Before Import:** Before importing any new external npm package, you must run `pnpm list <package>` via the terminal to confirm its existence in the project. Never assume a package is present based on training data.
 * **Defensive Commits:** Create an isolated git checkpoint before undertaking any multi-file structural refactoring. Do not modify more than 3 files in a single pass without prompting for user review.
 
 ## 2. Frontend Constraints (React + Zustand + Socket + MUI + Tailwind)
@@ -12,6 +13,7 @@
 * **Styling Integration:** Combine Material UI structural layouts with Tailwind CSS utility classes. Utilize the `cn()` utility function (`clsx` + `tailwind-merge`) for all conditional and runtime-dependent styling expressions.
 * **Strict Internationalization:** Hardcoded strings are banned in user-facing components. All copy must pull from localized files using `i18next` key definitions.
 * **Icon Discipline:** Import icons exclusively from `@tabler/icons-react` as named imports. Never use `@mui/icons-material`. The `size` prop replaces MUI's `fontSize` — set it explicitly (`size={24}`, `size={20}`, `size={16}`) based on the IconButton size context. Color is inherited via `currentColor` from the parent IconButton or container sx.
+* **Chunk Optimization:** Use Vite 8+ `build.rolldownOptions.output.codeSplitting.groups` (NOT deprecated `manualChunks`) to vendor-split heavy libraries into separate chunks: `vendor-react` (react, react-dom, react-router, @clerk), `vendor-mui` (@mui), `vendor-icons` (@tabler), `vendor-other` (remaining node_modules). Set `chunkSizeWarningLimit: 400`. When adding a new large dependency, add a matching `test` regex to the appropriate group.
 
 ## 3. Backend Constraints (Express + MongoDB + Mongoose + Socket)
 * **Decoupled Architecture:** Maintain an explicit separation of concerns: Routes execute validated controller pipelines; Controllers delegate to Mongoose models or custom services; Socket handlers map cleanly to standalone event namespaces.

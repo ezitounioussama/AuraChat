@@ -3,7 +3,8 @@
     "chats": "Chats",
     "calls": "Calls",
     "settings": "Settings",
-    "profile": "Profile"
+    "profile": "Profile",
+    "theme": "Toggle theme"
   },
   "sessionList": {
     "search": "Search or start new chat",

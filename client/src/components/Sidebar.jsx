@@ -1,7 +1,8 @@
-import { Box, IconButton, Tooltip } from '@mui/material'
+import { Box, IconButton, Tooltip, Divider } from '@mui/material'
 import { UserButton, Show } from '@clerk/react'
 import { IconMessage, IconPhone, IconSettings } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
+import ThemeToggle from './ThemeToggle'
 
 const ICON_BUTTON_SX = { color: 'grey.400', '&:hover': { color: 'common.white' } }
 const ACTIVE_ICON_SX = { ...ICON_BUTTON_SX, color: 'primary.main' }
@@ -40,6 +41,12 @@ export default function Sidebar() {
       </Tooltip>
 
       <Box sx={{ flex: 1 }} />
+
+      <Tooltip title={t('sidebar.theme')} placement="right">
+        <Box>
+          <ThemeToggle sx={{ color: 'grey.400', '&:hover': { color: 'common.white' } }} />
+        </Box>
+      </Tooltip>
 
       <Tooltip title={t('sidebar.settings')} placement="right">
         <IconButton sx={ICON_BUTTON_SX}>

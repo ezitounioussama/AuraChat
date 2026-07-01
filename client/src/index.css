@@ -1,6 +1,10 @@
 @layer theme, base, mui, components, utilities;
 @import "tailwindcss";
 
+*, *::before, *::after {
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
 @theme inline {
   --font-sans: "Inter", "Roboto", "Helvetica", "Arial", sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;

@@ -3,6 +3,7 @@ import { UserButton, Show } from '@clerk/react'
 import { IconMessage, IconPhone, IconSettings } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 import ThemeToggle from './ThemeToggle'
+import NotificationBadge from './notifications/NotificationBadge'
 
 const ICON_BUTTON_SX = { color: 'grey.400', '&:hover': { color: 'common.white' } }
 const ACTIVE_ICON_SX = { ...ICON_BUTTON_SX, color: 'primary.main' }
@@ -41,6 +42,12 @@ export default function Sidebar() {
       </Tooltip>
 
       <Box sx={{ flex: 1 }} />
+
+      <Tooltip title="Notifications" placement="right">
+        <Box>
+          <NotificationBadge />
+        </Box>
+      </Tooltip>
 
       <Tooltip title={t('sidebar.theme')} placement="right">
         <Box>

@@ -1,18 +1,94 @@
-import { Box, Typography, Avatar, IconButton, TextField, InputAdornment, Chip, Divider } from '@mui/material'
+import { useState, useEffect, useRef } from 'react'
+import { Box, Typography, Avatar, IconButton, TextField, InputAdornment, Chip, Divider, Skeleton } from '@mui/material'
 import { IconSend, IconLock, IconDotsVertical, IconPhone, IconVideo, IconMoodHappy, IconPaperclip } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 import { useUIStore } from '../stores/uiStore'
 import { useThemeMode } from '../contexts/ThemeContext'
+import { useSocketStore } from '../stores/socketStore'
+import { messageService } from '../services/messages'
+import { useAuth } from '@clerk/react'
+import toast from 'react-hot-toast'
 
 export default function ChatView() {
   const { t } = useTranslation()
   const { mode } = useThemeMode()
-  const { activeSessionId, sessions } = useUIStore()
-  const session = sessions.find((s) => s.id === activeSessionId)
+  const { userId } = useAuth()
+  const { activeSessionId, sessions, messages: allMessages, setMessages, addMessage } = useUIStore()
+  const { sendMessage, typingUsers, startTyping, stopTyping } = useSocketStore()
+  const session = sessions.find((s) => s._id === activeSessionId)
+  const messages = allMessages[activeSessionId] || []
+  const [input, setInput] = useState('')
+  const [loadingMessages, setLoadingMessages] = useState(false)
+  const messagesEndRef = useRef(null)
+  const typingTimeoutRef = useRef(null)
 
   const chatBg = mode === 'dark' ? '#151518' : '#F0F2F5'
   const bubbleSelf = '#3A76F0'
   const bubbleOther = mode === 'dark' ? '#2C2C33' : '#FFFFFF'
+
+  useEffect(() => {
+    if (!activeSessionId) return
+    const fetchMessages = async () => {
+      setLoadingMessages(true)
+      try {
+        const response = await messageService.getByConversation(activeSessionId, 50)
+        setMessages(activeSessionId, response.data)
+      } catch (error) {
+        toast.error('Failed to load messages')
+      } finally {
+        setLoadingMessages(false)
+      }
+    }
+    fetchMessages()
+  }, [activeSessionId, setMessages])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const handleSend = async () => {
+    const text = input.trim()
+    if (!text || !activeSessionId) return
+
+    setInput('')
+    try {
+      const response = await messageService.send({ conversationId: activeSessionId, content: text, type: 'text' })
+      addMessage(response.data)
+      if (sendMessage) {
+        sendMessage({ conversationId: activeSessionId, content: text, type: 'text' })
+      }
+    } catch (error) {
+      toast.error('Failed to send message')
+      setInput(text)
+    }
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
+  }
+
+  const handleTyping = () => {
+    if (!activeSessionId || !startTyping) return
+    startTyping(activeSessionId)
+  }
+
+  const formatTime = (date) => {
+    if (!date) return ''
+    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+
+  const getConversationName = (conv) => {
+    if (!conv) return ''
+    if (conv.name) return conv.name
+    if (conv.type === 'direct') {
+      const other = conv.participants?.find((p) => p._id !== userId)
+      return other?.displayName || 'Unknown'
+    }
+    return conv.participants?.map((p) => p.displayName).join(', ') || 'Group'
+  }
 
   if (!session) {
     return (
@@ -34,11 +110,11 @@ export default function ChatView() {
     <Box sx={{ flex: 1, height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: mode === 'dark' ? '#151518' : 'background.paper' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1, borderBottom: 1, borderColor: 'divider', gap: 1.5, bgcolor: mode === 'dark' ? '#1C1C20' : 'background.paper' }}>
         <Avatar sx={{ width: 36, height: 36, bgcolor: '#3A76F0', fontSize: 15, fontWeight: 600 }}>
-          {session.name.charAt(0)}
+          {getConversationName(session).charAt(0)}
         </Avatar>
         <Box sx={{ flex: 1 }}>
           <Typography variant="subtitle2" fontWeight={600} sx={{ lineHeight: 1.3 }}>
-            {session.name}
+            {getConversationName(session)}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
             <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: session.online ? '#4CAF50' : 'text.disabled' }} />
@@ -67,26 +143,47 @@ export default function ChatView() {
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1, justifyContent: 'flex-end' }}>
-          <Box sx={{ bgcolor: bubbleSelf, color: '#FFFFFF', px: 1.5, py: 1, borderRadius: 2.5, maxWidth: '70%', borderBottomRightRadius: 1, boxShadow: mode === 'dark' ? '0 1px 4px rgba(0,0,0,0.2)' : '0 1px 2px rgba(0,0,0,0.06)' }}>
-            <Typography variant="body2" sx={{ lineHeight: 1.45, fontSize: 14 }}>Hey, how are you?</Typography>
-            <Typography variant="caption" sx={{ opacity: 0.65, display: 'block', textAlign: 'right', mt: 0.3, fontSize: 11 }}>10:42 AM</Typography>
-          </Box>
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1 }}>
-          <Avatar sx={{ width: 28, height: 28, bgcolor: '#E17076', fontSize: 12, fontWeight: 600, flexShrink: 0 }}>
-            A
-          </Avatar>
-          <Box sx={{ bgcolor: bubbleOther, px: 1.5, py: 1, borderRadius: 2.5, maxWidth: '70%', borderBottomLeftRadius: 1, boxShadow: mode === 'dark' ? '0 1px 4px rgba(0,0,0,0.2)' : '0 1px 2px rgba(0,0,0,0.04)' }}>
-            <Typography variant="body2" sx={{ lineHeight: 1.45, fontSize: 14, color: mode === 'dark' ? '#E4E4E7' : 'inherit' }}>
-              I'm doing great! Ready for the meeting?
-            </Typography>
-            <Typography variant="caption" color={mode === 'dark' ? 'rgba(255,255,255,0.35)' : 'text.disabled'} sx={{ display: 'block', textAlign: 'right', mt: 0.3, fontSize: 11 }}>
-              10:43 AM
-            </Typography>
-          </Box>
-        </Box>
+        {loadingMessages ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <Box key={i} sx={{ display: 'flex', alignItems: 'flex-end', gap: 1, justifyContent: i % 2 === 0 ? 'flex-end' : 'flex-start' }}>
+              <Skeleton variant="rounded" width={120 + i * 30} height={36} sx={{ borderRadius: 3 }} />
+            </Box>
+          ))
+        ) : messages.length === 0 ? (
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
+            No messages yet. Say hello!
+          </Typography>
+        ) : (
+          messages.map((msg) => {
+            const isSelf = msg.sender?._id === userId || msg.sender === userId
+            return (
+              <Box key={msg._id} sx={{ display: 'flex', alignItems: 'flex-end', gap: 1, justifyContent: isSelf ? 'flex-end' : 'flex-start' }}>
+                {!isSelf && (
+                  <Avatar sx={{ width: 28, height: 28, bgcolor: '#E17076', fontSize: 12, fontWeight: 600, flexShrink: 0 }}>
+                    {msg.sender?.displayName?.charAt(0) || 'U'}
+                  </Avatar>
+                )}
+                <Box sx={{
+                  bgcolor: isSelf ? bubbleSelf : bubbleOther,
+                  color: isSelf ? '#FFFFFF' : mode === 'dark' ? '#E4E4E7' : 'inherit',
+                  px: 1.5, py: 1, borderRadius: 2.5, maxWidth: '70%',
+                  borderBottomRightRadius: isSelf ? 1 : 2.5,
+                  borderBottomLeftRadius: isSelf ? 2.5 : 1,
+                  boxShadow: mode === 'dark' ? '0 1px 4px rgba(0,0,0,0.2)' : '0 1px 2px rgba(0,0,0,0.04)',
+                }}>
+                  <Typography variant="body2" sx={{ lineHeight: 1.45, fontSize: 14 }}>
+                    {msg.content}
+                  </Typography>
+                  <Typography variant="caption" sx={{ opacity: 0.65, display: 'block', textAlign: 'right', mt: 0.3, fontSize: 11 }}>
+                    {formatTime(msg.createdAt)}
+                    {isSelf && msg.readBy?.length > 1 && ' ✓✓'}
+                  </Typography>
+                </Box>
+              </Box>
+            )
+          })
+        )}
+        <div ref={messagesEndRef} />
       </Box>
 
       <Box sx={{ px: 2, py: 1.5, borderTop: 1, borderColor: 'divider', bgcolor: mode === 'dark' ? '#1C1C20' : 'background.paper' }}>
@@ -96,6 +193,12 @@ export default function ChatView() {
           maxRows={4}
           placeholder={t('chat.sendMessage')}
           size="small"
+          value={input}
+          onChange={(e) => {
+            setInput(e.target.value)
+            handleTyping()
+          }}
+          onKeyDown={handleKeyDown}
           slotProps={{
             input: {
               startAdornment: (
@@ -106,7 +209,9 @@ export default function ChatView() {
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton size="small" sx={{ color: 'text.secondary' }}><IconPaperclip size={20} /></IconButton>
-                  <IconButton size="small" color="primary"><IconSend size={20} /></IconButton>
+                  <IconButton size="small" color="primary" onClick={handleSend} disabled={!input.trim()}>
+                    <IconSend size={20} />
+                  </IconButton>
                 </InputAdornment>
               ),
               sx: { borderRadius: 3, bgcolor: mode === 'dark' ? '#252529' : 'grey.50', '&:hover': { bgcolor: mode === 'dark' ? '#2C2C33' : 'grey.100' }, transition: 'background-color 0.2s ease' },

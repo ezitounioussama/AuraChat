@@ -7,6 +7,9 @@ import './index.css'
 import MainLayout from './layouts/MainLayout'
 import SignInPage from './pages/SignInPage'
 import { ThemeModeProvider, useThemeMode } from './contexts/ThemeContext'
+import { SocketProvider } from './contexts/SocketContext'
+import Toast from './components/notifications/Toast'
+import NotificationSnackbar from './components/notifications/NotificationSnackbar'
 import './i18n'
 
 const commonTheme = {
@@ -34,6 +37,7 @@ function ThemedRoot() {
 
   return (
     <ClerkProvider
+      publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
       routerPush={(to) => navigate(to)}
       routerReplace={(to) => navigate(to, { replace: true })}
       signInUrl="/sign-in"
@@ -42,17 +46,21 @@ function ThemedRoot() {
     >
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Routes>
-          <Route path="/sign-in/*" element={<SignInPage />} />
-          <Route
-            path="/*"
-            element={
-              <Show when="signed-in" fallback={<Navigate to="/sign-in" replace />}>
-                <MainLayout />
-              </Show>
-            }
-          />
-        </Routes>
+        <SocketProvider>
+          <Toast />
+          <NotificationSnackbar />
+          <Routes>
+            <Route path="/sign-in/*" element={<SignInPage />} />
+            <Route
+              path="/*"
+              element={
+                <Show when="signed-in" fallback={<Navigate to="/sign-in" replace />}>
+                  <MainLayout />
+                </Show>
+              }
+            />
+          </Routes>
+        </SocketProvider>
       </ThemeProvider>
     </ClerkProvider>
   )

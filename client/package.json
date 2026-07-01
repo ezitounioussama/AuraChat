@@ -1,0 +1,39 @@
+{
+  "name": "client",
+  "private": true,
+  "version": "1.0.0",
+  "description": "AuraChat Client - A privacy-focused, real-time messaging web application featuring a Signal-inspired minimalist UI, built with React, Zustand, Socket.io-client, Material UI, TailwindCSS, and i18n internationalization.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^9.1.2",
+    "@tailwindcss/vite": "^4.3.2",
+    "clsx": "^2.1.1",
+    "i18next": "^26.3.4",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-i18next": "^17.0.8",
+    "react-router-dom": "^7.18.1",
+    "socket.io-client": "^4.8.3",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.3.2",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@babel/core": "^8.0.1",
+    "@rolldown/plugin-babel": "^0.2.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "oxlint": "^1.71.0",
+    "vite": "^8.1.1"
+  }
+}

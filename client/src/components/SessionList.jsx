@@ -189,8 +189,10 @@ export default function SessionList() {
               <ListItemText
                 primary={getConversationName(session)}
                 secondary={session.lastMessage?.content || 'No messages yet'}
-                primaryTypographyProps={{ fontWeight: activeSessionId === session._id ? 600 : 500, noWrap: true, fontSize: 14 }}
-                secondaryTypographyProps={{ noWrap: true, variant: 'body2', fontSize: 13, color: mode === 'dark' ? 'rgba(255,255,255,0.4)' : undefined }}
+                slotProps={{
+                  primary: { fontWeight: activeSessionId === session._id ? 600 : 500, noWrap: true, fontSize: 14 },
+                  secondary: { noWrap: true, variant: 'body2', fontSize: 13, color: mode === 'dark' ? 'rgba(255,255,255,0.4)' : undefined },
+                }}
               />
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', ml: 1, gap: 0.5 }}>
                 <Typography variant="caption" color="text.disabled" sx={{ fontSize: 11 }}>

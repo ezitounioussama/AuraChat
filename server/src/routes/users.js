@@ -6,6 +6,7 @@ import { schemas } from '../utils/validators.js'
 
 const router = Router()
 
+router.get('/', authenticate, userController.getAllUsers)
 router.get('/me', authenticate, userController.getProfile)
 router.patch('/me', authenticate, validate(schemas.user.updateProfile), userController.updateProfile)
 router.get('/search', authenticate, userController.searchUsers)

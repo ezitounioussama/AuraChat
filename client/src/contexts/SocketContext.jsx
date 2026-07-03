@@ -3,25 +3,49 @@ import { useAuth } from '@clerk/react'
 import { useSocketStore } from '../stores/socketStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import { useUIStore } from '../stores/uiStore'
+import { authService } from '../services/auth'
 
 const SocketContext = createContext(null)
 
 export function SocketProvider({ children }) {
-  const { getToken } = useAuth()
+  const { getToken, isSignedIn } = useAuth()
   const { connect, disconnect, setOnMessage, setOnMessageRead, setOnUserStatus } = useSocketStore()
   const { addNotification } = useNotificationStore()
-  const { addMessage, updateMessageRead } = useUIStore()
+  const { addMessage, updateMessageRead, setCurrentUserMongoId, currentUserMongoId } = useUIStore()
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await authService.getMe()
+        console.log('[SocketContext] Current user MongoDB ID:', response.data._id, response.data.displayName, response.data.email)
+        setCurrentUserMongoId(response.data._id)
+      } catch (error) {
+        console.error('[SocketContext] Failed to fetch current user:', error)
+      }
+    }
+    if (isSignedIn) {
+      fetchCurrentUser()
+    }
+  }, [isSignedIn, setCurrentUserMongoId])
 
   const handleMessage = useCallback((message) => {
-    addMessage(message)
-    addNotification({
-      type: 'message',
-      title: message.sender?.displayName || 'New message',
-      message: message.content?.substring(0, 50) || 'Sent an attachment',
-      avatar: message.sender?.avatar,
-      senderName: message.sender?.displayName,
-      severity: 'info',
-    })
+    const mongoId = useUIStore.getState().currentUserMongoId
+    const senderId = message.sender?._id || message.sender
+    const isSelf = senderId === mongoId
+
+    if (!isSelf) {
+      addMessage(message)
+      addNotification({
+        type: 'message',
+        title: message.sender?.displayName || 'New message',
+        message: message.content?.substring(0, 50) || 'Sent an attachment',
+        avatar: message.sender?.avatar,
+        senderName: message.sender?.displayName,
+        severity: 'info',
+      })
+    } else {
+      addMessage(message)
+    }
   }, [addMessage, addNotification])
 
   const handleMessageRead = useCallback((data) => {
@@ -50,12 +74,14 @@ export function SocketProvider({ children }) {
       }
     }
 
-    initSocket()
+    if (isSignedIn) {
+      initSocket()
+    }
 
     return () => {
       disconnect()
     }
-  }, [getToken, connect, disconnect])
+  }, [isSignedIn, getToken, connect, disconnect])
 
   return (
     <SocketContext.Provider value={{}}>

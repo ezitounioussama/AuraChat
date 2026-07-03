@@ -1,7 +1,7 @@
-import { StrictMode, useMemo } from 'react'
+import { StrictMode, useMemo, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom'
-import { ClerkProvider, Show } from '@clerk/react'
+import { ClerkProvider, Show, useAuth } from '@clerk/react'
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material'
 import './index.css'
 import MainLayout from './layouts/MainLayout'
@@ -10,12 +10,23 @@ import { ThemeModeProvider, useThemeMode } from './contexts/ThemeContext'
 import { SocketProvider } from './contexts/SocketContext'
 import Toast from './components/notifications/Toast'
 import NotificationSnackbar from './components/notifications/NotificationSnackbar'
+import { api } from './services/api'
 import './i18n'
 
 const commonTheme = {
   modularCssLayers: '@layer theme, base, mui, components, utilities;',
   shape: { borderRadius: 12 },
   typography: { fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif' },
+}
+
+function AuthInjector() {
+  const { getToken } = useAuth()
+
+  useEffect(() => {
+    api.setTokenGetter(getToken)
+  }, [getToken])
+
+  return null
 }
 
 function ThemedRoot() {
@@ -44,6 +55,7 @@ function ThemedRoot() {
       signInFallbackRedirectUrl="/"
       signUpFallbackRedirectUrl="/"
     >
+      <AuthInjector />
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <SocketProvider>

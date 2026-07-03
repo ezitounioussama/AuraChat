@@ -11,8 +11,12 @@ export const useSocketStore = create((set, get) => ({
   typingUsers: {},
 
   connect: (token) => {
-    if (socket?.connected) return
+    if (socket?.connected) {
+      console.log('[Socket] Already connected, skipping')
+      return
+    }
 
+    console.log('[Socket] Connecting to', SOCKET_URL)
     socket = io(SOCKET_URL, {
       auth: { token },
       reconnection: true,
@@ -21,10 +25,12 @@ export const useSocketStore = create((set, get) => ({
     })
 
     socket.on('connect', () => {
+      console.log('[Socket] Connected! ID:', socket.id)
       set({ connected: true })
     })
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', (reason) => {
+      console.log('[Socket] Disconnected:', reason)
       set({ connected: false })
     })
 
@@ -34,16 +40,19 @@ export const useSocketStore = create((set, get) => ({
     })
 
     socket.on('message:new', (message) => {
+      console.log('[Socket] message:new', message)
       const handler = get().onMessage
       if (handler) handler(message)
     })
 
     socket.on('message:read', (data) => {
+      console.log('[Socket] message:read', data)
       const handler = get().onMessageRead
       if (handler) handler(data)
     })
 
     socket.on('typing:start', (data) => {
+      console.log('[Socket] typing:start', data)
       set((state) => ({
         typingUsers: {
           ...state.typingUsers,
@@ -56,6 +65,7 @@ export const useSocketStore = create((set, get) => ({
     })
 
     socket.on('typing:stop', (data) => {
+      console.log('[Socket] typing:stop', data)
       set((state) => {
         const convTyping = { ...(state.typingUsers[data.conversationId] || {}) }
         delete convTyping[data.userId]
@@ -69,6 +79,7 @@ export const useSocketStore = create((set, get) => ({
     })
 
     socket.on('user:status', (data) => {
+      console.log('[Socket] user:status', data)
       const handler = get().onUserStatus
       if (handler) handler(data)
     })
@@ -78,6 +89,7 @@ export const useSocketStore = create((set, get) => ({
 
   disconnect: () => {
     if (socket) {
+      console.log('[Socket] Disconnecting')
       socket.disconnect()
       socket = null
       set({ socket: null, connected: false })

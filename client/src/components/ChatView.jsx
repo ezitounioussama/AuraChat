@@ -6,14 +6,12 @@ import { useUIStore } from '../stores/uiStore'
 import { useThemeMode } from '../contexts/ThemeContext'
 import { useSocketStore } from '../stores/socketStore'
 import { messageService } from '../services/messages'
-import { useAuth } from '@clerk/react'
 import toast from 'react-hot-toast'
 
 export default function ChatView() {
   const { t } = useTranslation()
   const { mode } = useThemeMode()
-  const { userId } = useAuth()
-  const { activeSessionId, sessions, messages: allMessages, setMessages, addMessage } = useUIStore()
+  const { activeSessionId, sessions, messages: allMessages, setMessages, addMessage, currentUserMongoId } = useUIStore()
   const { sendMessage, typingUsers, startTyping, stopTyping } = useSocketStore()
   const session = sessions.find((s) => s._id === activeSessionId)
   const messages = allMessages[activeSessionId] || []
@@ -21,6 +19,10 @@ export default function ChatView() {
   const [loadingMessages, setLoadingMessages] = useState(false)
   const messagesEndRef = useRef(null)
   const typingTimeoutRef = useRef(null)
+
+  useEffect(() => {
+    console.log('[ChatView] currentUserMongoId:', currentUserMongoId, 'activeSessionId:', activeSessionId, 'messages:', messages.length)
+  }, [currentUserMongoId, activeSessionId, messages.length])
 
   const chatBg = mode === 'dark' ? '#151518' : '#F0F2F5'
   const bubbleSelf = '#3A76F0'
@@ -51,15 +53,8 @@ export default function ChatView() {
     if (!text || !activeSessionId) return
 
     setInput('')
-    try {
-      const response = await messageService.send({ conversationId: activeSessionId, content: text, type: 'text' })
-      addMessage(response.data)
-      if (sendMessage) {
-        sendMessage({ conversationId: activeSessionId, content: text, type: 'text' })
-      }
-    } catch (error) {
-      toast.error('Failed to send message')
-      setInput(text)
+    if (sendMessage) {
+      sendMessage({ conversationId: activeSessionId, content: text, type: 'text' })
     }
   }
 
@@ -84,7 +79,7 @@ export default function ChatView() {
     if (!conv) return ''
     if (conv.name) return conv.name
     if (conv.type === 'direct') {
-      const other = conv.participants?.find((p) => p._id !== userId)
+      const other = conv.participants?.find((p) => p._id !== currentUserMongoId)
       return other?.displayName || 'Unknown'
     }
     return conv.participants?.map((p) => p.displayName).join(', ') || 'Group'
@@ -155,7 +150,8 @@ export default function ChatView() {
           </Typography>
         ) : (
           messages.map((msg) => {
-            const isSelf = msg.sender?._id === userId || msg.sender === userId
+            const senderId = msg.sender?._id || msg.sender
+            const isSelf = senderId === currentUserMongoId
             return (
               <Box key={msg._id} sx={{ display: 'flex', alignItems: 'flex-end', gap: 1, justifyContent: isSelf ? 'flex-end' : 'flex-start' }}>
                 {!isSelf && (

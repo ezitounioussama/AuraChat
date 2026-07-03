@@ -29,6 +29,17 @@ export const userController = {
     }
   },
 
+  async getAllUsers(req, res, next) {
+    try {
+      console.log('[Users] getAllUsers called by:', req.user._id.toString(), req.user.displayName, req.user.email)
+      const users = await userService.getAll(req.user._id)
+      console.log('[Users] Returning', users.length, 'users:', users.map(u => u.displayName + '(' + u._id + ')'))
+      return success(res, users)
+    } catch (error) {
+      next(error)
+    }
+  },
+
   async searchUsers(req, res, next) {
     try {
       const { q, limit } = req.query

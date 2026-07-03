@@ -3,7 +3,7 @@ import 'dotenv/config'
 const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: parseInt(process.env.PORT, 10) || 3000,
-  MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/aurachat',
+  MONGODB_URI: process.env.MONGODB_URI,
   CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
   CLERK_JWT_KEY: process.env.CLERK_JWT_KEY,
   CLERK_WEBHOOK_SECRET: process.env.CLERK_WEBHOOK_SECRET,

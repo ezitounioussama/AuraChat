@@ -3,16 +3,35 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 class ApiClient {
   constructor() {
     this.baseUrl = API_BASE
+    this.tokenGetter = null
+  }
+
+  setTokenGetter(getter) {
+    this.tokenGetter = getter
   }
 
   async request(endpoint, options = {}) {
     const url = `${this.baseUrl}${endpoint}`
+    const headers = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    }
+
+    if (this.tokenGetter) {
+      try {
+        const token = await this.tokenGetter()
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
+        }
+      } catch {
+        // token retrieval failed — proceed unauthenticated
+      }
+    }
+
     const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      credentials: 'include',
       ...options,
+      headers,
     }
 
     if (config.body && typeof config.body === 'object') {

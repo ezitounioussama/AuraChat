@@ -1,6 +1,10 @@
 import { api } from './api'
 
 export const authService = {
+  getAll() {
+    return api.get('/users')
+  },
+
   getMe() {
     return api.get('/users/me')
   },

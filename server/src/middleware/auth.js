@@ -1,7 +1,46 @@
-import { verifyToken } from '@clerk/backend'
+import { createClerkClient, verifyToken } from '@clerk/backend'
 import { User } from '../models/User.js'
 import env from '../config/env.js'
 import logger from '../utils/logger.js'
+
+const clerkClient = createClerkClient({ secretKey: env.CLERK_SECRET_KEY })
+
+async function findOrCreateUser(clerkUserId) {
+  let user = await User.findByClerkId(clerkUserId)
+  if (user) return user
+
+  const clerkUser = await clerkClient.users.getUser(clerkUserId)
+  const email = clerkUser.emailAddresses?.[0]?.emailAddress || `${clerkUserId}@placeholder.com`
+  let username = clerkUser.username || email.split('@')[0]
+  const displayName = clerkUser.firstName
+    ? `${clerkUser.firstName} ${clerkUser.lastName || ''}`.trim()
+    : username
+  const avatar = clerkUser.imageUrl || null
+
+  try {
+    user = await User.findOrCreateByClerkId(clerkUserId, {
+      email,
+      username,
+      displayName,
+      avatar,
+    })
+  } catch (err) {
+    if (err.code === 11000) {
+      username = `${username}_${clerkUserId.slice(-4)}`
+      user = await User.findOrCreateByClerkId(clerkUserId, {
+        email,
+        username,
+        displayName,
+        avatar,
+      })
+    } else {
+      throw err
+    }
+  }
+
+  logger.info('Auto-created MongoDB user from Clerk', { clerkUserId, email })
+  return user
+}
 
 export const authenticate = async (req, res, next) => {
   try {
@@ -22,7 +61,7 @@ export const authenticate = async (req, res, next) => {
       authorizedParties: [env.CLIENT_URL],
     })
 
-    const user = await User.findByClerkId(verified.sub)
+    const user = await findOrCreateUser(verified.sub)
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -69,7 +108,7 @@ export const optionalAuth = async (req, res, next) => {
       authorizedParties: [env.CLIENT_URL],
     })
 
-    req.user = await User.findByClerkId(verified.sub)
+    req.user = await findOrCreateUser(verified.sub)
     req.clerkUserId = verified.sub
   } catch {
     req.user = null

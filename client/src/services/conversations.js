@@ -9,6 +9,10 @@ export const conversationService = {
     return api.get(`/conversations/${id}`)
   },
 
+  findOrCreateDirect(userId) {
+    return api.post('/conversations', { type: 'direct', participants: [userId] })
+  },
+
   create(data) {
     return api.post('/conversations', data)
   },

@@ -56,7 +56,7 @@ class MessageService {
       await session.commitTransaction()
 
       return Message.findById(message._id)
-        .populate('sender', 'displayName avatar')
+        .populate('sender', '_id displayName avatar')
         .populate('replyTo')
     } catch (error) {
       await session.abortTransaction()
@@ -80,7 +80,7 @@ class MessageService {
 
     await message.edit(newContent)
     return Message.findById(messageId)
-      .populate('sender', 'displayName avatar')
+      .populate('sender', '_id displayName avatar')
       .populate('replyTo')
   }
 
@@ -102,7 +102,7 @@ class MessageService {
 
     await message.markAsRead(userId)
     return Message.findById(messageId)
-      .populate('sender', 'displayName avatar')
+      .populate('sender', '_id displayName avatar')
   }
 
   async getUnreadCount(conversationId, userId) {

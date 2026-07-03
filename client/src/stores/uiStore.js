@@ -2,13 +2,17 @@ import { create } from 'zustand'
 
 export const useUIStore = create((set, get) => ({
   activeSessionId: null,
+  activeView: 'chats',
   sidebarOpen: false,
   searchQuery: '',
   sessions: [],
   messages: {},
   userStatuses: {},
+  currentUserMongoId: null,
 
-  setActiveSession: (id) => set({ activeSessionId: id }),
+  setCurrentUserMongoId: (id) => set({ currentUserMongoId: id }),
+  setActiveView: (view) => set({ activeView: view, activeSessionId: null }),
+  setActiveSession: (id) => set({ activeSessionId: id, activeView: 'chats' }),
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
   setSearchQuery: (query) => set({ searchQuery: query }),

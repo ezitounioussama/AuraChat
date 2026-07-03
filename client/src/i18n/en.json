@@ -1,6 +1,7 @@
 {
   "sidebar": {
     "chats": "Chats",
+    "online": "Online Users",
     "calls": "Calls",
     "settings": "Settings",
     "profile": "Profile",
@@ -27,5 +28,13 @@
     "password": "Password",
     "signInWithGoogle": "Sign in with Google",
     "signInWithFacebook": "Sign in with Facebook"
+  },
+  "onlineUsers": {
+    "title": "Online Users",
+    "online": "Online",
+    "offline": "Offline",
+    "noOnline": "No users online",
+    "connected": "Connected",
+    "disconnected": "Disconnected"
   }
 }

@@ -2,14 +2,21 @@ import { Box, Drawer, useMediaQuery, useTheme } from '@mui/material'
 import Sidebar from '../components/Sidebar'
 import SessionList from '../components/SessionList'
 import ChatView from '../components/ChatView'
+import OnlineUsers from '../components/OnlineUsers'
 import { useUIStore } from '../stores/uiStore'
 import { useThemeMode } from '../contexts/ThemeContext'
 
 export default function MainLayout() {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
-  const { sidebarOpen, setSidebarOpen, activeSessionId } = useUIStore()
+  const { sidebarOpen, setSidebarOpen, activeSessionId, activeView } = useUIStore()
   const { mode } = useThemeMode()
+
+  const content = activeView === 'online' ? <OnlineUsers /> : (
+    <>
+      {!activeSessionId ? <SessionList /> : <ChatView />}
+    </>
+  )
 
   if (isMobile) {
     return (
@@ -22,12 +29,7 @@ export default function MainLayout() {
         >
           <Sidebar />
         </Drawer>
-
-        {!activeSessionId ? (
-          <SessionList />
-        ) : (
-          <ChatView />
-        )}
+        {content}
       </Box>
     )
   }
@@ -35,8 +37,7 @@ export default function MainLayout() {
   return (
     <Box sx={{ height: '100dvh', display: 'flex', bgcolor: mode === 'dark' ? '#151518' : 'background.paper', transition: 'background-color 0.3s ease' }}>
       <Sidebar />
-      <SessionList />
-      <ChatView />
+      {content}
     </Box>
   )
 }

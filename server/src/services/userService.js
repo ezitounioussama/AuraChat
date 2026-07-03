@@ -42,6 +42,11 @@ class UserService {
     return user
   }
 
+  async getAll(excludeUserId = null) {
+    const filter = excludeUserId ? { _id: { $ne: excludeUserId } } : {}
+    return User.find(filter).select('displayName username avatar status lastSeen')
+  }
+
   async search(query, limit = 10) {
     return User.find({
       $or: [
